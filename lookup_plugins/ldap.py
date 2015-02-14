@@ -118,7 +118,7 @@ class LookupModule(object):
             terms = [terms]
 
         ctx = {}
-        while isinstance(terms[0], dict):
+        while len(terms) > 0 and isinstance(terms[0], dict):
             ctx.update(terms.pop(0))
         ctx = fill_context(ctx, inject, **kwargs)
 
@@ -176,6 +176,13 @@ class LookupModule(object):
         lo.simple_bind_s(ctx.get('binddn', ''), ctx.get('bindpw', ''))
 
         ret = []
+
+        # If no terms are provided, assume that the user specified all
+        # aspects of the search with no reference to {{term}}.
+
+        if terms == []:
+            terms = [None]
+
         for term in terms:
             if isinstance(term, dict):
                 raise errors.AnsibleError(
