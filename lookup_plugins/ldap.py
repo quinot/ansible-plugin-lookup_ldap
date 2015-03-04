@@ -218,7 +218,7 @@ class LookupModule(object):
                     if single_attr == 'dn':
                         items = [dn]
                     else:
-                        items = attrs[single_attr]
+                        items = attrs.get(single_attr, [])
 
                     p = attr_props.get(single_attr) or {}
                     if key_attr is not None:
