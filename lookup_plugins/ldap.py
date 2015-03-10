@@ -24,7 +24,7 @@ from ansible.utils import template
 import base64
 import os
 
-conf_prefix = 'ldap_lookup_config'
+default_context = 'ldap_lookup_config'
 
 HAVE_LDAP = False
 try:
@@ -74,14 +74,19 @@ def fill_context(ctx, inject, **kwargs):
 
     # Start with default config
 
-    fctx = inject[conf_prefix].copy()
+    fctx = inject.get(default_context, {}).copy()
     fctx['context'] = fctx.copy()
 
     # Load named config context and overrides from ctx and kwargs
 
     for d in [ctx, kwargs]:
         if 'context' in d:
-            named_ctx = inject['%s/%s' % (conf_prefix, d.pop('context'))]
+            parent_context = d.pop('context')
+            if parent_context in inject:
+                named_ctx = inject[parent_context]
+            else:
+                raise errors.AnsibleError(
+                    'context %s does not exist' % parent_context)
 
             # Update filled context with named context
 

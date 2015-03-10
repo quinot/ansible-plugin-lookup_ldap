@@ -8,7 +8,8 @@ Tested on Ansible 1.8
 
 #### Variables
 
-The plugin expects configuration in an `ldap_lookup_config` variable:
+The plugin allows default parameters to be set using the `ldap_lookup_config`
+variable:
 
 ```yaml
 ldap_lookup_config:
@@ -62,7 +63,7 @@ Valid attribute properties are:
     values, even if it has a single value.
 
 The defaults can be overridden by declaring specific query contexts,
-which are varibles named `ldap_lookup_config/*CONTEXT*`. Any parameter
+which are dict variables following the same structure. Any parameter
 not overridden in a context is inherited from the defaults.
 
 #### Usage
@@ -97,14 +98,14 @@ term. The following additional variables are defined at that point:
       # scope: subtree
 
     # List all users, skip jpegPhoto
-    ldap_lookup_config/user_nophoto:
+    user_nophoto:
       base: ou=People,dc=example,dc=com
       value:
         - jpegPhoto: skip=True
       filter: (uid={{ term }})
 
     # List all users, return dn and jpegPhoto, Base64-encoded
-    ldap_lookup_config/user_withphoto:
+    user_withphoto:
       base: ou=People,dc=example,dc=com
       key: dn
       value:
@@ -113,18 +114,18 @@ term. The following additional variables are defined at that point:
       filter: (uid={{ term }})
 
     # List every host DN
-    ldap_lookup_config/hosts:
+    hosts:
       base: ou=NetDevices,dc=example,dc=com
       value: dn
 
     # List group members as plain values (no key)
-    ldap_lookup_config/group_members:
+    group_members:
       base: ou=Groups,dc=example,dc=com
       value: memberUid
       filter: (cn={{ term }})
 
     # List group members, with CN as key
-    ldap_lookup_config/group_members_cn:
+    group_members_cn:
       base: ou=Groups,dc=example,dc=com
       key: cn
       value: memberUid
