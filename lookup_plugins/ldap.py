@@ -22,18 +22,11 @@ from ansible.callbacks import vv
 from ansible.utils import template
 
 import base64
+import ldap
 import os
+import sys
 
 default_context = 'ldap_lookup_config'
-
-HAVE_LDAP = False
-try:
-    import ldap
-    HAVE_LDAP = True
-except ImportError, e:
-    print e
-    pass
-
 
 def attr_name(attr_spec):
     '''Return the LDAP attribute name for an attribute spec
@@ -111,9 +104,6 @@ class LookupModule(object):
 
     def __init__(self, basedir=None, **kwargs):
         self.basedir = basedir
-        if HAVE_LDAP == False:
-            raise errors.AnsibleError(
-                "Can't LOOKUP(ldap): module ldap is not installed")
 
     def run(self, terms, inject=None, **kwargs):
 
@@ -132,7 +122,8 @@ class LookupModule(object):
         try:
             ctx = template.template(self.basedir, ctx, inject)
         except Exception, e:
-            print "exception: %s" % e
+            raise errors.AnsibleError(
+                'exception while preparing LDAP parameters: %s' % e)
         vv("LDAP config: %s" % ctx)
 
         # Prepare per-term inject, making named context available, if any
