@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Thomas Quinot
+  description: LDAP lookup plugin
+  license: BSD
+  min_ansible_version: 1.8
+  platforms:
+  - name: GenericUNIX
+    versions:
+    - any
+  categories:
+  - system
+dependencies: []

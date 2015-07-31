@@ -1,16 +1,24 @@
-## LDAP Lookup Plugin
+LDAP Lookup Plugin
+==================
+ 
+This role provides a lookup plugin to perform LDAP queries.
 
-This lookup plugin provides iteration and lookup on LDAP query results.
+Requirements
+------------
+ 
+Tested on Ansible 1.8.
 
-#### Requirements and dependencies
+Dependencies
+------------
+ 
+Use of this role requires the Python LDAP client module.
 
-Tested on Ansible 1.8
-
-#### Variables
-
+Role Variables
+--------------
+ 
 The plugin allows default parameters to be set using the `ldap_lookup_config`
 variable:
-
+ 
 ```yaml
 ldap_lookup_config:
   url: ldap://ldap.example.com
@@ -20,7 +28,7 @@ ldap_lookup_config:
   base: dc=example,dc=com
   # Base DN for all queries
   # Default: None
-
+ 
   binddn: cn=Manager,dc=example,dc=com
   # DN to use for simple binding
   # Default: None (anonymous bind)
@@ -28,7 +36,7 @@ ldap_lookup_config:
   bindpw: Secret!
   # Password to use for simple binding (anon binding if none)
   # Default: None
-
+ 
   scope: subtree
   # Scope of queries (one of "base", "onelevel", or "subtree")
   # Default: subtree
@@ -41,11 +49,10 @@ ldap_lookup_config:
   value:
   # List of attributes to be returned
   # Default: None (return all attributes)
-
+ 
   key:
   # Key attribute to be included in returned values
   # Default: None (no key)
-
 ```
 
 `value` can be:
@@ -66,7 +73,8 @@ The defaults can be overridden by declaring specific query contexts,
 which are dict variables following the same structure. Any parameter
 not overridden in a context is inherited from the defaults.
 
-#### Usage
+Usage
+-----
 
 The `with_ldap` iterator accepts either a single term, or a list of terms,
 possibly preceded by one or more dict(s) with possible keys:
@@ -82,7 +90,8 @@ term. The following additional variables are defined at that point:
   -  `context`: the named context, if any, else the default one;
   -  `term`: the search term.
 
-#### Example
+Example Playbook
+----------------
 
 ```yaml
 
@@ -187,3 +196,8 @@ term. The following additional variables are defined at that point:
         - webservers
         - dbservers
 ```
+
+License
+-------
+ 
+BSD
