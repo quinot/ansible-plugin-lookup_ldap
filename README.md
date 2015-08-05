@@ -87,8 +87,8 @@ at the beginning of the iteration.
 
 Search parameters (`base`, `scope`, and `filter`) are expanded for each
 term. The following additional variables are defined at that point:
-  -  `context`: the named context, if any, else the default one;
-  -  `term`: the search term.
+  - `context`: the named context, if any, else the default one;
+  - `term`: the search term.
 
 Example Playbook
 ----------------
@@ -189,10 +189,15 @@ Example Playbook
       debug: msg="Host {{ item }}"
       with_ldap:
         - context: host
-          base: ou={{term}},{{context.base}}
-          # Here the search term is not substituted in a filter,
-          # but in the search base. Also note reference to
-          # the 'base' property of the named context ('host').
+          base: {% raw %}ou={{term}},{{context.base}}{% endraw %}
+          # Here the search term is not substituted in a filter, but in the
+          # search base. Also note reference to the 'base' property of the
+          # named context ('host').
+          # Note: template references in items are expanded by Ansible prior
+          # to being handed off to the lookup plugin. However, references
+          # to the search context and search term obviously cannot be
+          # resolved at that time. The whole 'base' value therefore needs
+          # to be escaped in a {% raw %} block here.
         - webservers
         - dbservers
 ```

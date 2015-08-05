@@ -18,8 +18,10 @@
 from __future__ import absolute_import
 
 from ansible import utils, errors
-from ansible.callbacks import vv
-from ansible.utils import template
+
+from ansible.parsing.splitter import parse_kv
+from ansible.plugins.lookup import LookupBase
+from ansible.template import Templar
 
 import base64
 import ldap
@@ -100,36 +102,43 @@ def encode(p, v):
     return v
 
 
-class LookupModule(object):
+class LookupModule(LookupBase):
 
-    def __init__(self, basedir=None, **kwargs):
-        self.basedir = basedir
+    def render_template(self, inject, v):
+        return Templar(loader=self._loader, variables=inject).template(v)
 
-    def run(self, terms, inject=None, **kwargs):
-
-        terms = utils.listify_lookup_plugin_terms(terms, self.basedir, inject)
-
+    def run(self, terms, variables=None, **kwargs):
         if not isinstance(terms, list):
             terms = [terms]
 
         ctx = {}
         while len(terms) > 0 and isinstance(terms[0], dict):
             ctx.update(terms.pop(0))
-        ctx = fill_context(ctx, inject, **kwargs)
-
-        # Template substitution on connection parameters
-
-        try:
-            ctx = template.template(self.basedir, ctx, inject)
-        except Exception, e:
-            raise errors.AnsibleError(
-                'exception while preparing LDAP parameters: %s' % e)
-        vv("LDAP config: %s" % ctx)
+        ctx = fill_context(ctx, variables, **kwargs)
 
         # Prepare per-term inject, making named context available, if any
 
-        search_inject = inject.copy()
-        search_inject['context'] = ctx.get('context')
+        search_inject = variables.copy()
+
+        # Extract search description from context (it may contain references
+        # to {{term}}, which cannot be interpolated just yet, as the term
+        # variable is still undefined.
+
+        per_item_ctx = {
+            'context': ctx.pop('context', None),
+            'base':    ctx.pop('base', ''),
+            'scope':   ctx.pop('scope', 'subtree'),
+            'filter':  ctx.pop('filter', None)
+        }
+        # At this point, no term-specific items remain in ctx, and we can
+        # do template substitution for connection parameters
+
+        try:
+            ctx = self.render_template(variables, ctx)
+        except Exception, e:
+            raise errors.AnsibleError(
+                'exception while preparing LDAP parameters: %s' % e)
+        self._display.vv("LDAP config: %s" % ctx)
 
         # Compute attribute list and attribute properties
 
@@ -137,34 +146,34 @@ class LookupModule(object):
         attr_props = {}
         single_attr = None
         value_spec = ctx.get('value')
-        if isinstance(value_spec, str):
+        if value_spec is not None and not isinstance(value_spec, list):
             value_spec = [value_spec]
         if value_spec is not None:
             for attr in value_spec:
-                if isinstance(attr, str):
+                if not isinstance(attr, dict):
                     attr_props[attr] = None
                 else:
                     for attr_name, attr_prop_dict in attr.items():
-                        if isinstance(attr_prop_dict, str):
-                            attr_prop_dict = utils.parse_kv(attr_prop_dict)
+                        if not isinstance(attr_prop_dict, dict):
+                            attr_prop_dict = parse_kv(attr_prop_dict)
                         attr_props[attr_name] = attr_prop_dict
 
             base_args['attrlist'] = \
-                [a for a in attr_props
+                [a.encode('ASCII') for a in attr_props
                  if attr_props[a] is None
                  or not attr_props[a].get('skip', False)]
 
             if len(base_args['attrlist']) == 1:
                 single_attr = base_args['attrlist'][0]
 
-        vv('Attribute props: %s' % attr_props)
+        self._display.vv('Attribute props: %s' % attr_props)
 
         key_attr = ctx.get('key')
         if key_attr is not None \
                 and key_attr != 'dn' \
                 and 'attrlist' in base_args \
                 and key_attr not in base_args['attrlist']:
-            base_args['attrlist'].append(key_attr)
+            base_args['attrlist'].append(key_attr.encode('ASCII'))
 
         # Connect and bind
 
@@ -186,16 +195,13 @@ class LookupModule(object):
 
             # Compute templated search parameters
 
-            search_inject['term'] = term
+            this_item_ctx = dict(ctx)
+            this_item_ctx.update(per_item_ctx)
 
-            search_desc = {
-                'base':   ctx.get('base', ''),
-                'scope':  ctx.get('scope', 'subtree'),
-                'filter': ctx.get('filter')
-            }
-            search_desc = template.template(
-                self.basedir, search_desc, search_inject)
-            vv('LDAP search, expanded: %s' % search_desc)
+            search_inject['term'] = term
+            search_inject['context'] = this_item_ctx.get('context')
+            search_desc = self.render_template(search_inject, this_item_ctx)
+            self._display.vv('LDAP search, expanded: %s' % search_desc)
 
             # Perform search
 
