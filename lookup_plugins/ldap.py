@@ -27,6 +27,7 @@ import base64
 import ldap
 import os
 import sys
+import threading
 
 default_context = 'ldap_lookup_config'
 
@@ -103,6 +104,13 @@ def encode(p, v):
 
 
 class LookupModule(LookupBase):
+    # We may have to modify LDAP library options when making a new LDAP connection.
+    # (E.g., to ignore server certificate validation.)  We don't want any other
+    # thread to be attempting to modify library options at the same time.
+    #   We hope no agent besides this library is trying to set library options
+    # simultaneously.  Unfortunately, we don't have a way to ensure that. :()
+    #   Use library-level options with care.
+    __ldap_library_lock = threading.Lock()
 
     def render_template(self, inject, v):
         return Templar(loader=self._loader, variables=inject).template(v)
@@ -176,9 +184,10 @@ class LookupModule(LookupBase):
             base_args['attrlist'].append(key_attr.encode('ASCII'))
 
         # Connect and bind
-
-        lo = ldap.initialize(ctx['url'])
-        lo.simple_bind_s(ctx.get('binddn', ''), ctx.get('bindpw', ''))
+        with LookupModule.__ldap_library_lock:
+            LookupModule.set_ldap_library_options(ctx)
+            lo = ldap.initialize(ctx['url'])
+            lo.simple_bind_s(ctx.get('binddn', ''), ctx.get('bindpw', ''))
 
         ret = []
 
@@ -256,3 +265,17 @@ class LookupModule(LookupBase):
                     ret.append(item)
 
         return ret
+
+    @staticmethod
+    def get_ldap_opt_constant_value(value_specifier, constant_name_prefix):
+        if isinstance(value_specifier, basestring):
+            return getattr(ldap, constant_name_prefix + value_specifier.upper())
+        else:
+            return value_specifier
+
+    @staticmethod
+    def set_ldap_library_options(options_dictionary):
+        value = options_dictionary.get('tls_reqcert', None)
+        if not value is None and value != '':
+            value = LookupModule.get_ldap_opt_constant_value(value, 'OPT_X_TLS_')
+            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, value)

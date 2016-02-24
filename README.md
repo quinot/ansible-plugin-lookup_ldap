@@ -1,24 +1,24 @@
 LDAP Lookup Plugin
 ==================
- 
+
 This role provides a lookup plugin to perform LDAP queries.
 
 Requirements
 ------------
- 
+
 Tested on Ansible 1.8.
 
 Dependencies
 ------------
- 
+
 Use of this role requires the Python LDAP client module.
 
 Role Variables
 --------------
- 
+
 The plugin allows default parameters to be set using the `ldap_lookup_config`
 variable:
- 
+
 ```yaml
 ldap_lookup_config:
   url: ldap://ldap.example.com
@@ -28,7 +28,7 @@ ldap_lookup_config:
   base: dc=example,dc=com
   # Base DN for all queries
   # Default: None
- 
+
   binddn: cn=Manager,dc=example,dc=com
   # DN to use for simple binding
   # Default: None (anonymous bind)
@@ -36,7 +36,7 @@ ldap_lookup_config:
   bindpw: Secret!
   # Password to use for simple binding (anon binding if none)
   # Default: None
- 
+
   scope: subtree
   # Scope of queries (one of "base", "onelevel", or "subtree")
   # Default: subtree
@@ -49,10 +49,15 @@ ldap_lookup_config:
   value:
   # List of attributes to be returned
   # Default: None (return all attributes)
- 
+
   key:
   # Key attribute to be included in returned values
   # Default: None (no key)
+
+  tls_reqcert:
+  # Peer certificate verification strategy. One of 'never', 'hard', 'demand',
+  # 'allow', or 'try'.  See 'TLS_REQCERT' in the ldap.conf(5) manual page.
+  # Default: None (Use OS configuration file or library defaults.)
 ```
 
 `value` can be:
@@ -68,6 +73,10 @@ Valid attribute properties are:
   - `skip`: if set True, the attribute is not returned to Ansible
   - `list`: if set True, the attribute is always returned as a list of
     values, even if it has a single value.
+
+Note that, because of the way the 'ldap-python' library works, the `tls_reqcert`
+option is set on the whole library, and not per-connection.  Therefore,
+specifying this option can have side-effects.
 
 The defaults can be overridden by declaring specific query contexts,
 which are dict variables following the same structure. Any parameter
@@ -204,5 +213,5 @@ Example Playbook
 
 License
 -------
- 
+
 BSD
