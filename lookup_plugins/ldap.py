@@ -267,7 +267,7 @@ class LookupModule(LookupBase):
         return ret
 
     @staticmethod
-    def get_ldap_opt_constant_value(value_specifier, constant_name_prefix):
+    def get_ldap_constant_value(value_specifier, constant_name_prefix):
         if isinstance(value_specifier, basestring):
             return getattr(ldap, constant_name_prefix + value_specifier.upper())
         else:
@@ -277,5 +277,5 @@ class LookupModule(LookupBase):
     def set_ldap_library_options(options_dictionary):
         value = options_dictionary.get('tls_reqcert', None)
         if not value is None and value != '':
-            value = LookupModule.get_ldap_opt_constant_value(value, 'OPT_X_TLS_')
+            value = LookupModule.get_ldap_constant_value(value, 'OPT_X_TLS_')
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, value)
