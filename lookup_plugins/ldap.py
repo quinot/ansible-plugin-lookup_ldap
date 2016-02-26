@@ -104,12 +104,16 @@ def encode(p, v):
 
 
 class LookupModule(LookupBase):
-    # We may have to modify LDAP library options when making a new LDAP connection.
-    # (E.g., to ignore server certificate validation.)  We don't want any other
-    # thread to be attempting to modify library options at the same time.
-    #   We hope no agent besides this library is trying to set library options
-    # simultaneously.  Unfortunately, we don't have a way to ensure that. :()
-    #   Use library-level options with care.
+
+    # We may have to modify LDAP library options when making a new LDAP
+    # connection (e.g. to ignore server certificate validation). We don't
+    # want any other thread to be attempting to modify library options at
+    # the same time.
+    #
+    # We hope no agent besides this library is trying to set library options
+    # simultaneously. Unfortunately, we don't have a way to ensure that.
+    # Use library-level options with care.
+
     __ldap_library_lock = threading.Lock()
 
     def render_template(self, inject, v):
