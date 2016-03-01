@@ -240,8 +240,13 @@ J2 Filters
   ```
 
 
-
 License
--------
+=======
 
 BSD
+
+
+Contributors
+============
+
+Pavel Penev <https://github.com/tst-ppenev>: Minor contributions, such as J2 filters.
