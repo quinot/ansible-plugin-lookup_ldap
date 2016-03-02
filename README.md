@@ -211,7 +211,42 @@ Example Playbook
         - dbservers
 ```
 
+
+LDAP Filter Plugin
+==================
+
+This role provides a few simple Ansible Jinja2 filters for working with
+LDAP names.
+
+J2 Filters
+----------
+
+* `hostname_to_dn`: Converts a hostname string into a Distinguished Name
+  string.
+  
+  E.g.:
+  ```yaml
+  server_hostname: some.corp.com
+  server_dn: {{ server_hostname | hostname_to_dn }}  # Set 'server_dn' to 'dc=some,dc=corp,dc=com'.
+  ```
+
+* `dn_to_hostname`: Converts a Distinguished Name string of Domain Components
+  into a hostname string.
+  
+  E.g.:
+  ```yaml
+  server_dn: DC=some,DC=corp,DC=com
+  server_hostname: {{ server_dn | dn_to_hostname }}  # Set 'server_hostname' to 'some.corp.com'.
+  ```
+
+
 License
--------
+=======
 
 BSD
+
+
+Contributors
+============
+
+Pavel Penev <https://github.com/tst-ppenev>: Minor contributions, such as J2 filters.
