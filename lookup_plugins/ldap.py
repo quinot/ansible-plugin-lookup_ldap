@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import
 
-from ansible import utils, errors
+from ansible import errors
 
 from ansible.parsing.splitter import parse_kv
 from ansible.plugins.lookup import LookupBase
@@ -25,36 +25,9 @@ from ansible.template import Templar
 
 import base64
 import ldap
-import os
-import sys
 import threading
 
 default_context = 'ldap_lookup_config'
-
-def attr_name(attr_spec):
-    '''Return the LDAP attribute name for an attribute spec
-
-    :param str or dict attr_spec: attribute spec
-    :return: attribute name
-    :rtype: str
-
-    attr_spec may be a naked attribute name (in which case
-    it is returned unchanged), or a dict with a single key:
-
-      {<attr_name>: {properties}}
-
-    in which case the key is returned.
-
-    '''
-
-    if isinstance(attr_spec, dict):
-        k = attr_spec.keys()
-        assert(len(k) == 1)
-        return k[0]
-
-    else:
-        return attr_spec
-
 
 def fill_context(ctx, inject, **kwargs):
     '''Make a complete context from a partial context from an
