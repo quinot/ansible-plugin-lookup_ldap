@@ -25,6 +25,7 @@ from ansible.template import Templar
 
 import base64
 import ldap
+import ldap.sasl
 import threading
 
 default_context = 'ldap_lookup_config'
@@ -164,7 +165,11 @@ class LookupModule(LookupBase):
         with LookupModule.__ldap_library_lock:
             LookupModule.set_ldap_library_options(ctx)
             lo = ldap.initialize(ctx['url'])
-            lo.simple_bind_s(ctx.get('binddn', ''), ctx.get('bindpw', ''))
+            if ctx.get('auth','simple') == 'gssapi':
+                auth_tokens = ldap.sasl.gssapi()
+                lo.sasl_interactive_bind_s('', auth_tokens)
+            else:
+                lo.simple_bind_s(ctx.get('binddn', ''), ctx.get('bindpw', ''))
 
         ret = []
 

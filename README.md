@@ -29,6 +29,10 @@ ldap_lookup_config:
   # Base DN for all queries
   # Default: None
 
+  auth: simple
+  # Authentication mechanism to use for binding (one of "simple", "gssapi")
+  # Default: simple
+
   binddn: cn=Manager,dc=example,dc=com
   # DN to use for simple binding
   # Default: None (anonymous bind)
