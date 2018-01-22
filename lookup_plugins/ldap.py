@@ -99,7 +99,13 @@ class LookupModule(LookupBase):
 
         ctx = {}
         while len(terms) > 0 and isinstance(terms[0], dict):
-            ctx.update(terms.pop(0))
+            # Allow specifying a list of terms as a 'terms' parameter
+
+            item = terms.pop(0)
+            if 'terms' in item:
+                terms.extend(item.pop('terms'))
+
+            ctx.update(item)
         ctx = fill_context(ctx, variables, **kwargs)
 
         # Prepare per-term inject, making named context available, if any

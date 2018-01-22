@@ -91,8 +91,36 @@ Usage
 
 The `with_ldap` iterator accepts either a single term, or a list of terms,
 possibly preceded by one or more dict(s) with possible keys:
-  - `context`: a context to use other than the default one
-  - any valid configuration parameter to be overridden
+  - `context`: a context to use other than the default one;
+  - `terms': a list of additional terms to append to the terms list;
+  - any valid configuration parameter to be overridden.
+
+Note: the list of terms is not flattened. If you have declared:
+
+```
+vars:
+  foobar:
+    - foo
+    - bar
+```
+
+and then use the following loop:
+
+```
+with_ldap:
+  - context: mycontext
+  - "{{ foobar }}"
+```
+
+then you get a single term which is a list. If you want to query the terms
+"foo" and "bar", use instead:
+
+```
+with_ldap:
+  - context: mycontext
+  - terms: "{{ foobar }}"
+```
+
 
 LDAP connection parameters (`url`, `binddn`, `bindpw`) and returned value
 parameters (`value`, and `key`) are subject to template expansion once
