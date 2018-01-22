@@ -169,6 +169,9 @@ class LookupModule(LookupBase):
                 auth_tokens = ldap.sasl.gssapi()
                 lo.sasl_interactive_bind_s('', auth_tokens)
             else:
+                # bindpw may be an AnsibleVaultEncryptedUnicode, which ldap doesn't
+                # know anything about, so cast to unicode explicitly now.
+                
                 lo.simple_bind_s(ctx.get('binddn', ''), unicode(ctx.get('bindpw', '')))
 
         ret = []
