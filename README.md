@@ -181,6 +181,11 @@ Example Playbook
       value: memberUid
       filter: (cn={{ term }})
 
+    # A regular list of users
+    users:
+      - johndoe
+      - marktwain
+
   tasks:
     - name: Display one user, no photo
       debug: msg="User {{ item }}"
@@ -203,6 +208,12 @@ Example Playbook
         - context: user_nophoto
         - johndoe
         - marktwain
+
+    - name: Fetch several users from a list, no photo
+      debug: msg="User {{ item }}"
+      with_ldap:
+        - context: user_nophoto
+        - terms: "{{ users }}"
 
     - name: Iterate on groups (merging contents), key is CN
       debug: msg="Group {{ item.cn }} contains {{ item.memberUid }}"
