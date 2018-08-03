@@ -171,6 +171,9 @@ class LookupModule(LookupBase):
         with LookupModule.__ldap_library_lock:
             LookupModule.set_ldap_library_options(ctx)
             lo = ldap.initialize(ctx['url'])
+            # StartTLS if required
+            if ctx.get('tls', False):
+                lo.start_tls_s()
             if ctx.get('auth','simple') == 'gssapi':
                 auth_tokens = ldap.sasl.gssapi()
                 lo.sasl_interactive_bind_s('', auth_tokens)
