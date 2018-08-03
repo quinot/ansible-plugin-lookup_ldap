@@ -58,6 +58,10 @@ ldap_lookup_config:
   # Key attribute to be included in returned values
   # Default: None (no key)
 
+  tls:
+  # Use STARTTLS after connecting
+  # Default: False
+
   tls_reqcert:
   # Peer certificate verification strategy. One of 'never', 'hard', 'demand',
   # 'allow', or 'try'.  See 'TLS_REQCERT' in the ldap.conf(5) manual page.
