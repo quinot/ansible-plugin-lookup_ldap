@@ -79,7 +79,7 @@ Valid attribute properties are:
   - `encoding`: `binary` for binary data (e.g. `jpegPhoto`), or any valid
     character set name for text data
   - `skip`: if set True, the attribute is not returned to Ansible
-  - `list`: if set True, the attribute is always returned as a list of
+  - `always_list`: if set True, the attribute is always returned as a list of
     values, even if it has a single value.
 
 Note that, because of the way the 'ldap-python' library works, the `tls_reqcert`
