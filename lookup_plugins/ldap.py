@@ -77,6 +77,21 @@ def encode(p, v):
     return v
 
 
+def hide_pw(ctx):
+    '''If a passowrd is present in ctx, replace it with a fixed string
+    so that it does not get leaked to verbose logs. Also do so
+    recursively in any included parent context.'''
+
+    censored = {}
+    for k, v in ctx.items():
+        if k == 'bindpw':
+            v = '********'
+        if isinstance(v, dict):
+            v = hide_pw(v)
+        censored[k] = v
+    return censored
+
+
 class LookupModule(LookupBase):
 
     # We may have to modify LDAP library options when making a new LDAP
@@ -123,14 +138,14 @@ class LookupModule(LookupBase):
             'filter':  ctx.pop('filter', None)
         }
         # At this point, no term-specific items remain in ctx, and we can
-        # do template substitution for connection parameters
+        # do template substitution for connection parameters.
 
         try:
             ctx = self.render_template(variables, ctx)
         except Exception, e:
             raise errors.AnsibleError(
                 'exception while preparing LDAP parameters: %s' % e)
-        self._display.vv("LDAP config: %s" % ctx)
+        self._display.vv("LDAP config: %s" % hide_pw(ctx))
 
         # Compute attribute list and attribute properties
 
@@ -180,7 +195,7 @@ class LookupModule(LookupBase):
             else:
                 # bindpw may be an AnsibleVaultEncryptedUnicode, which ldap doesn't
                 # know anything about, so cast to unicode explicitly now.
-                
+
                 lo.simple_bind_s(ctx.get('binddn', ''), unicode(ctx.get('bindpw', '')))
 
         ret = []
@@ -204,7 +219,7 @@ class LookupModule(LookupBase):
             search_inject['term'] = term
             search_inject['context'] = this_item_ctx.get('context')
             search_desc = self.render_template(search_inject, this_item_ctx)
-            self._display.vv('LDAP search, expanded: %s' % search_desc)
+            self._display.vv('LDAP search, expanded: %s' % hide_pw(search_desc))
 
             # Perform search
 
